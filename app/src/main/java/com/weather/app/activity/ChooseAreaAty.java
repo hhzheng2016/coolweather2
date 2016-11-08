@@ -2,7 +2,10 @@ package com.weather.app.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -25,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.R.attr.country;
+import static android.R.attr.start;
 
 /**
  * Created by hasee on 2016/11/7.
@@ -77,6 +81,16 @@ public class ChooseAreaAty extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //跳转到weatheraty
+        SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
+        if(prefs.getBoolean("city_selected",false)){
+            Intent intent=new Intent(this,WeatherAty.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.choose_area);
         listView = (ListView) findViewById(R.id.list_view);
@@ -95,10 +109,16 @@ public class ChooseAreaAty extends Activity {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if(currentLevel==LEVEL_COUNTRY){
+                    String countryCode=countryList.get(position).getCountryCode();
+                    Intent intent=new Intent(ChooseAreaAty.this,WeatherAty.class);
+                    intent.putExtra("country_code",countryCode);
+                    startActivity(intent);
+                    finish();
                 }
             }
         });
-        queryProvinces();
+        queryProvinces(); //加载省级数据
     }
 
 
