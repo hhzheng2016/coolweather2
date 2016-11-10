@@ -13,6 +13,7 @@ import com.weather.app.model.City;
 import com.weather.app.model.Country;
 import com.weather.app.model.Province;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,7 +52,9 @@ public class Utility {
      */
     public static boolean handleCitiesResponse(CoolWeatherDB coolWeatherDB, String response, int provinceId) {
         if (!TextUtils.isEmpty(response)) {
-            String[] allCities = response.split(".");
+
+            //之前无法显示市级列表，因为此处split内的","，写错了，用了一个"."
+            String[] allCities = response.split(",");
             if (allCities != null && allCities.length > 0) {
                 for (String c : allCities) {
                     String[] array = c.split("\\|");
@@ -91,18 +94,34 @@ public class Utility {
 
     /**
      * 解析服务器返回的JSON数据，并存储到本地
+     *
+     * 中国天气网api停用了，此处改用其他网站的api，返回的JSON数据略有不同，需要修改此方法
      */
     public static void handleWeatherResponse(Context context,String response){
+//        try{
+//            JSONObject jsonObject=new JSONObject(response);
+//            JSONObject weatherInfo=jsonObject.getJSONObject("weatherinfo");
+//            String cityName=weatherInfo.getString("city");
+//            String weatherCode=weatherInfo.getString("cityid");
+//            String temp1=weatherInfo.getString("temp1");
+//            String temp2=weatherInfo.getString("temp2");
+//            String weatherDesp=weatherInfo.getString("weather");
+//            String publishTime=weatherInfo.getString("ptime");
+//            saveWeatherInfo(context,cityName,weatherCode,temp1,temp2,weatherDesp,publishTime);
+//        }catch (JSONException e){
+//            e.printStackTrace();
+//        }
         try{
             JSONObject jsonObject=new JSONObject(response);
-            JSONObject weatherInfo=jsonObject.getJSONObject("weatherinfo");
-            String cityName=weatherInfo.getString("city");
-            String weatherCode=weatherInfo.getString("cityid");
-            String temp1=weatherInfo.getString("temp1");
-            String temp2=weatherInfo.getString("temp2");
-            String weatherDesp=weatherInfo.getString("weather");
-            String publishTime=weatherInfo.getString("ptime");
-            saveWeatherInfo(context,cityName,weatherCode,temp1,temp2,weatherDesp,publishTime);
+            JSONObject data=jsonObject.getJSONObject("data");
+            JSONArray forecast=data.getJSONArray("forecast");
+            String cityName=data.getString("city");
+            JSONObject array1=forecast.getJSONObject(0);
+            String temp1=array1.getString("high");
+            String temp2=array1.getString("low");
+            String weatherDesp=array1.getString("type");
+            String publishTime=array1.getString("date");
+            saveWeatherInfo(context,cityName,temp1,temp2,weatherDesp,publishTime);
         }catch (JSONException e){
             e.printStackTrace();
         }
@@ -110,15 +129,15 @@ public class Utility {
 
     @TargetApi(Build.VERSION_CODES.N)
     private static void saveWeatherInfo(Context context, String cityName,
-                                        String weatherCode, String temp1, String temp2,
+                                        String temp1, String temp2,
                                         String weatherDesp, String publishTime) {
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy年M月d日", Locale.CHINA);
         SharedPreferences.Editor editor= PreferenceManager.getDefaultSharedPreferences(context).edit();
         editor.putBoolean("city_selected",true);
         editor.putString("city_name",cityName);
-        editor.putString("weather_code",weatherCode);
-        editor.putString("temp1",temp1);
-        editor.putString("temp2",temp2);
+        //editor.putString("weather_code",weatherCode);
+        editor.putString("temp1",temp1);//高温
+        editor.putString("temp2",temp2);//低温
         editor.putString("weather_desp",weatherDesp);
         editor.putString("publish_time",publishTime);
         editor.putString("current_date",sdf.format(new Date()));
