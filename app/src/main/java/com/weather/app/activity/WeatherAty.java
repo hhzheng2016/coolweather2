@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -87,9 +88,10 @@ public class WeatherAty extends Activity implements View.OnClickListener {
                 finish();
                 break;
             case R.id.refresh_weather:
+                Log.d("refresh","press refresh weather button");
                 publishText.setText("同步中...");
                 SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
-                String weatherCode=prefs.getString("weather_code","");
+                String weatherCode=prefs.getString("city_name","");
                 if(!TextUtils.isEmpty(weatherCode)){
                     queryWeatherInfo(weatherCode,"city");
                 }
@@ -121,7 +123,7 @@ public class WeatherAty extends Activity implements View.OnClickListener {
 //        String address="http://www.weather.com.cn/data/cityinfo/"+weatherCode+".html";
 //        queryFromServer(address,"weatherCode");
 
-
+        Log.d("queryWeatherInfo","executed");
         //两种查询方式，传入city，后面是城市名（需要转码），例如：长安==%E9%95%BF%E5%AE%89
         if("city".equals(type)){
             try {
@@ -140,6 +142,8 @@ public class WeatherAty extends Activity implements View.OnClickListener {
      * 根据传入的地址和类型去查询天气代号或者天气信息
      */
     private void queryFromServer(final String address,final String type){
+        Log.d("queryFromServer","executed");
+
         HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
             @Override
             public void onFinish(String response) {
@@ -158,9 +162,11 @@ public class WeatherAty extends Activity implements View.OnClickListener {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            Log.d("showWeather","executed");
                             showWeather();
                         }
                     });
+
                 }
             }
 
